@@ -39,7 +39,8 @@ class ofApp : public ofBaseApp{
     
         void transform();
         void normal();
-        void expression();
+        void joy();
+        void disgust();
         void sql(int i);
         void baseline(int i);
         double stdev(int *data, int n);
@@ -83,13 +84,17 @@ class ofApp : public ofBaseApp{
         std::string que = "SELECT rri1, rri2, rri3 FROM yoneda6 WHERE count = ";
         std::string ry;
         int r;
-        int i;
+        int i = 0;
         int sum = 0;
         int average;
         int bl_data[2000];
         int data[2000];
+        //int comarison[];
         int count = 0;
         double sd;
         float z_score;
-        float Max = 500;
+        float Max = 150;
+    
+        bool flag;
+        double hrv;
 };

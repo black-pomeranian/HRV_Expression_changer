@@ -55,31 +55,37 @@ void ofApp::update(){
     m = ofGetMinutes();
     
     ofstream ofs("/Users/yonedaryou/Downloads/OF_ROOT/apps/myApps/Expression_Change-myBeat/bin/data/hrv_Log.csv", std::ios::app);
+    
+    //std::printf("%d ", i);
 
-    if(i < 30){
+    if(i < 10){
         baseline(i);
-        //std::printf("%d ", data[i]);
-
+        if(flag){
+            ++i;
+            flag = false;
+        }
     }
     
-    if(30 == i){
-        average = sum/90;
-        //std::printf("%d", data[11]);
-        sd = stdev(bl_data, 90);
-        //std::printf("%d ", average);
-        //std::printf("%lf", sd);
+    if(10 == i){
+        average = sum/30;
+        sd = stdev(bl_data, 30);
+        std::printf("%lf ", sd);
     }
-    if(30 <= i){
+    if(10 <= i){
         sql(i);
-        double hrv = stdev(data, 3);
-        //std::printf("%lf ", hrv);
+         hrv = stdev(data, 3);
+        std::printf("%lf ", hrv);
         z_score = hrv - sd;  //標準より少ない方がリラックス(正になる)
-        printf("%f ", z_score);
         ofs << hrv << ",";
+        
+        if(flag){
+            ++i;
+            flag = false;
+        }
+        
     }
     
-    i++;
-    
+    //++i;
 }
 
     
@@ -142,8 +148,14 @@ void ofApp::draw(){
                 normal();
                 break;
             case 1:
-                expression();
-                break;
+                if(z_score > 0){
+                    joy();
+                    break;
+                }
+                else if (z_score < 0){
+                    disgust();
+                    break;
+                }
         }
         
         ofSetColor(255);
@@ -261,8 +273,124 @@ float ofApp::changeEmo1(float z_score){
     return z_score * 1/(Max - sd);
 }
 
+
+void ofApp::baseline(int i){
+    ofstream ofs("/Users/yonedaryou/Downloads/OF_ROOT/apps/myApps/Expression_Change-myBeat/bin/data/rri_Log.csv", std::ios::app);
+    
+    char sql_str[255];
+    
+    conn = mysql_init(NULL);
+    if (!mysql_real_connect(conn, DBHOST, DBUSER, DBPASS, DBNAME, DBPORT, NULL, 0)) {
+        std::exit(1);
+    }
+    
+    //ry = (int)i + '0';
+    ry = std::to_string(i);
+    std::string query_str = que + ry;
+    query = query_str.c_str();
+    
+    std::snprintf( &sql_str[0] , sizeof(sql_str)-1 , query );
+    if( mysql_query( conn , &sql_str[0] ) ){
+      // error
+      mysql_close(conn);
+      std::exit(-1);
+    }
+    
+    resp = mysql_use_result(conn);
+    while((row = mysql_fetch_row(resp)) != NULL ){
+      unsigned int col;
+      for(col = 0; col < mysql_num_fields(resp); col++){
+          sum = sum + atoi(row[col]);
+          bl_data[count] = atoi(row[col]);
+          
+          ofs << row[col] << ",";
+          //std::printf("%d ", i);
+          
+          /*if( comarison[col] != atoi(row[col]) ){
+              
+          }*/
+
+          ++count;
+
+      }
+          flag = true;
+    }
+    
+    mysql_free_result(resp);
+    mysql_close(conn);
+    
+
+
+    
+}
+
+void ofApp::sql(int i){
+    
+    ofstream ofs("/Users/yonedaryou/Downloads/OF_ROOT/apps/myApps/Expression_Change-myBeat/bin/data/rri_Log.csv", std::ios::app);
+
+    
+    char sql_str[255];
+    int count = 0;
+    
+    conn = mysql_init(NULL);
+    if (!mysql_real_connect(conn, DBHOST, DBUSER, DBPASS, DBNAME, DBPORT, NULL, 0)) {
+        std::exit(1);
+    }
+    
+    ry = std::to_string(i);
+    std::string query_str = que + ry;
+    query = query_str.c_str();
+    
+    std::snprintf( &sql_str[0] , sizeof(sql_str)-1 , query );
+    if( mysql_query( conn , &sql_str[0] ) ){
+      // error
+      mysql_close(conn);
+      std::exit(-1);
+    }
+    
+    resp = mysql_use_result(conn);
+    while((row = mysql_fetch_row(resp)) != NULL ){
+      unsigned int col;
+      for(col = 0; col < mysql_num_fields(resp); col++){
+          sum = sum + atoi(row[col]);
+          data[count] = atoi(row[col]);
+          ofs << row[col] << ",";
+          //std::printf("%s ", row[col]);
+          //std::printf("%d ", i);
+
+          ++count;
+      }
+            flag = true;
+    }
+    
+        
+    mysql_free_result(resp);
+    mysql_close(conn);
+    
+}
+
+
+double ofApp::stdev(int *data, int n) {
+  int sum = 0;
+  double mean;
+  double var = 0.0;
+  int i;
+
+  for (i = 0; i < n; i++) {
+    sum += data[i];
+  }
+  mean = (double)sum / n;
+
+  for (i = 0; i < n; i++) {
+    var += (data[i] - mean) * (data[i] - mean);
+  }
+  return sqrt(var / (n - 1));
+}
+
+
+
 /*****正と負それぞれの値に変換するメソッドを作る！***********/
-void ofApp::expression(){                                     // joy - add - disgust
+void ofApp::joy(){                                     // joy - add - disgust
 
     //右眉:17-21
     addx[17] = 0.0000; addy[17] = -changeEmo05(z_score); addz[17] = 0.0000; //-0.5 ~ addy ~ 0
@@ -336,105 +464,76 @@ void ofApp::expression(){                                     // joy - add - dis
     
 }
 
+void ofApp::disgust(){                                     // joy - add - disgust
 
-void ofApp::baseline(int i){
-    ofstream ofs("/Users/yonedaryou/Downloads/OF_ROOT/apps/myApps/Expression_Change-myBeat/bin/data/rri_Log.csv", std::ios::app);
+    //右眉:17-21
+    addx[17] = 0.0000; addy[17] = 0.0000; addz[17] = 0.0000; //-0.5 ~ addy ~ 0
+    addx[18] = 0.0000; addy[18] = -changeEmo0125(z_score); addz[18] = 0.0000; //-0.75 ~ addy ~ -0.125
+    addx[19] = 0.0000; addy[19] = -changeEmo025(z_score); addz[19] = 0.0000; //-0.75 ~ addy ~ -0.25
+    addx[20] = 0.0000; addy[20] = -changeEmo025(z_score); addz[20] = 0.0000; //-0.75 ~ addy ~ -0.25
+    addx[21] = 0.0000; addy[21] = -changeEmo05(z_score); addz[21] = 0.0000; //-0.5 ~ addy ~ -0.5
+    //左眉:22-26
+    addx[22] = 0.0000; addy[22] = -changeEmo05(z_score); addz[22] = 0.0000; // -0.5 ~ addy ~ -0.5
+    addx[23] = 0.0000; addy[23] = -changeEmo025(z_score); addz[23] = 0.0000; // -0.75 ~ addy ~ -0.25
+    addx[24] = 0.0000; addy[24] = -changeEmo025(z_score); addz[24] = 0.0000; // -0.75 ~ addy ~ -0.25
+    addx[25] = 0.0000; addy[25] = -changeEmo0125(z_score); addz[25] = 0.0000; // -0.75 ~ addy ~ -0.125
+    addx[26] = 0.0000; addy[26] = 0.0000; addz[26] = 0.0000; // -0.5 ~ addy ~ 0
     
-    char sql_str[255];
-    ofLogToFile("RriLog.txt", true);
+    //鼻筋:27-30
+    addx[27] = 0.0000; addy[27] = 0.0000; addz[27] = 0.0000;
+    addx[28] = 0.0000; addy[28] = 0.0000; addz[28] = 0.0000;
+    addx[29] = 0.0000; addy[29] = 0.0000; addz[29] = 0.0000;
+    addx[30] = 0.0000; addy[30] = 0.0000; addz[30] = 0.0000;
+    //鼻底:31-35
+    addx[31] = 0.0000; addy[31] = 0.0000; addz[31] = 0.0000;
+    addx[32] = 0.0000; addy[32] = 0.0000; addz[32] = 0.0000;
+    addx[33] = 0.0000; addy[33] = 0.0000; addz[33] = 0.0000;
+    addx[34] = 0.0000; addy[34] = 0.0000; addz[34] = 0.0000;
+    addx[35] = 0.0000; addy[35] = 0.0000; addz[35] = 0.0000;
     
-    conn = mysql_init(NULL);
-    if (!mysql_real_connect(conn, DBHOST, DBUSER, DBPASS, DBNAME, DBPORT, NULL, 0)) {
-        std::exit(1);
-    }
+    //右目:36-41
+    addx[36] = -changeEmo025(z_score); addy[36] = -changeEmo0125(z_score); addz[36] = 0.0000; // -0.25 ~ addx ~ -0.25, -0.125 ~ addy ~ 0.125
+    addx[37] = 0.0000; addy[37] = -changeEmo025(z_score); addz[37] = 0.0000; //-0.450 ~ addy ~ 0.250
+    addx[38] = 0.0000; addy[38] = -changeEmo025(z_score); addz[38] = 0.0000; //-0.450 ~ addy ~ 0.250
+    addx[39] = changeEmo025(z_score); addy[39] = changeEmo0125(z_score); addz[39] = 0.0000; //0.25 ~ addx ~ 0.25, -0.1250 ~ addy ~ 0.1250
+    addx[40] = 0.0000; addy[40] = 0.0000; addz[40] = 0.0000;
+    addx[41] = 0.0000; addy[41] = 0.0000; addz[41] = 0.0000;
+    //左目:42-47
+    addx[42] = -changeEmo025(z_score); addy[42] = changeEmo0125(z_score); addz[42] = 0.0000; // -0.25 ~ addx ~ -0.25, -0.125 ~ addy ~ 0.125
+    addx[43] = 0.0000; addy[43] = -changeEmo045(z_score); addz[43] = 0.0000; //-0.450 ~ addy ~ 0.250
+    addx[44] = 0.0000; addy[44] = -changeEmo045(z_score); addz[44] = 0.0000; //-0.450 ~ addy ~ 0.250
+    addx[45] = changeEmo025(z_score); addy[45] = changeEmo0125(z_score); addz[45] = 0.0000; //0.25 ~ addx ~ 0.25, -0.1250 ~ addy ~ 0.1250
+    addx[46] = 0.0000; addy[46] = 0.0000; addz[46] = 0.0000;
+    addx[47] = 0.0000; addy[47] = 0.0000; addz[47] = 0.0000;
     
-    //ry = (int)i + '0';
-    ry = std::to_string(i);
-    std::string query_str = que + ry;
-    query = query_str.c_str();
+    //口:48-65
+    //左端
+    addx[48] = -changeEmo0125(z_score); addy[48] = changeEmo0375(z_score); addz[48] = 0.0000; //-1 ~ addx ~ -0.125, -1 ~ addy ~ 0.375
     
-    std::snprintf( &sql_str[0] , sizeof(sql_str)-1 , query );
-    if( mysql_query( conn , &sql_str[0] ) ){
-      // error
-      mysql_close(conn);
-      std::exit(-1);
-    }
+    //右端
+    addx[54] = changeEmo0125(z_score); addy[54] = changeEmo0375(z_score); addz[54] = 0.0000; //-1 ~ addx ~ -0.125, -1 ~ addy ~ 0.375
     
-    resp = mysql_use_result(conn);
-    while((row = mysql_fetch_row(resp)) != NULL ){
-      unsigned int col;
-      for(col = 0; col < mysql_num_fields(resp); col++){
-          sum = sum + atoi(row[col]);
-          bl_data[count] = atoi(row[col]);
-          //std::printf("%d ", );
-          
-          ofs << bl_data[count] << ",";
-
-          ++count;
-      }
-    }
+    //上唇上側
+    addx[49] = 0.0000; addy[49] = 0.0000; addz[49] = 0.0000;
+    addx[50] = 0.0000; addy[50] = 0.0000; addz[50] = 0.0000;
+    addx[51] = 0.0000; addy[51] = 0.0000; addz[51] = 0.0000;
+    addx[52] = 0.0000; addy[52] = 0.0000; addz[52] = 0.0000;
+    addx[53] = 0.0000; addy[53] = 0.0000; addz[53] = 0.0000;
+    //上唇下側
+    addx[60] = 0.0000; addy[60] = 0.0000; addz[60] = 0.0000;
+    addx[61] = 0.0000; addy[61] = 0.0000; addz[61] = 0.0000;
+    addx[62] = 0.0000; addy[62] = 0.0000; addz[62] = 0.0000;
     
-    mysql_free_result(resp);
-    mysql_close(conn);
+    //下唇上側
+    addx[63] = 0.0000; addy[63] = 0.0000; addz[63] = 0.0000;
+    addx[64] = 0.0000; addy[64] = 0.0000; addz[64] = 0.0000;
+    addx[65] = 0.0000; addy[65] = 0.0000; addz[65] = 0.0000;
+    //下唇下側
+    addx[55] = 0.0000; addy[55] = 0; addz[55] = 0.0000;
+    addx[56] = 0.0000; addy[56] = 0; addz[56] = 0.0000;
+    addx[57] = 0.0000; addy[57] = 0; addz[57] = 0.0000;
+    addx[58] = 0.0000; addy[58] = 0; addz[58] = 0.0000;
+    addx[59] = 0.0000; addy[59] = 0; addz[59] = 0.0000;
     
-}
-
-void ofApp::sql(int i){
     
-    ofstream ofs("/Users/yonedaryou/Downloads/OF_ROOT/apps/myApps/Expression_Change-myBeat/bin/data/rri_Log.csv", std::ios::app);
-
-    
-    char sql_str[255];
-    int count = 0;
-    
-    conn = mysql_init(NULL);
-    if (!mysql_real_connect(conn, DBHOST, DBUSER, DBPASS, DBNAME, DBPORT, NULL, 0)) {
-        std::exit(1);
-    }
-    
-    ry = std::to_string(i);
-    std::string query_str = que + ry;
-    query = query_str.c_str();
-    
-    std::snprintf( &sql_str[0] , sizeof(sql_str)-1 , query );
-    if( mysql_query( conn , &sql_str[0] ) ){
-      // error
-      mysql_close(conn);
-      std::exit(-1);
-    }
-    
-    resp = mysql_use_result(conn);
-    while((row = mysql_fetch_row(resp)) != NULL ){
-      unsigned int col;
-      for(col = 0; col < mysql_num_fields(resp); col++){
-          sum = sum + atoi(row[col]);
-          data[count] = atoi(row[col]);
-          //std::printf("%d ", );
-          ofs << data[count] << ",";
-
-          ++count;
-      }
-    }
-    
-    mysql_free_result(resp);
-    mysql_close(conn);
-    
-}
-
-
-double ofApp::stdev(int *data, int n) {
-  int sum = 0;
-  double mean;
-  double var = 0.0;
-  int i;
-
-  for (i = 0; i < n; i++) {
-    sum += data[i];
-  }
-  mean = (double)sum / n;
-
-  for (i = 0; i < n; i++) {
-    var += (data[i] - mean) * (data[i] - mean);
-  }
-  return sqrt(var / (n - 1));
 }
