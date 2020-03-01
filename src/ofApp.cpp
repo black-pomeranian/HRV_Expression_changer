@@ -11,7 +11,7 @@ void ofApp::setup(){
     
     ofSetVerticalSync(true); //フレーム数と描画回数を同期
     ofSetDrawBitmapMode(OF_BITMAPMODE_MODEL_BILLBOARD); //ビットマップ描画モード採用
-    ofSetFrameRate(10); //フレームレート設定
+    //ofSetFrameRate(10); //フレームレート設定
     ofEnableAlphaBlending(); //透明度設定
     
     //window size
@@ -54,6 +54,7 @@ void ofApp::update(){
     s = ofGetSeconds();
     m = ofGetMinutes();
     
+    //HRVのログ
     ofstream ofs("/Users/yonedaryou/Downloads/OF_ROOT/apps/myApps/Expression_Change-myBeat/bin/data/hrv_Log.csv", std::ios::app);
     
     //std::printf("%d ", i);
@@ -100,6 +101,17 @@ void ofApp::draw(){
     ofSetColor(0,255,0);
     
     ofDrawBitmapString(ofToString((int ) mode ) , 200,200); //画面に表情モードの文字描画
+    
+    //円のランダム生成
+    //if(ofGetFrameNum() % 100==0){
+    if(ofRandom(0, 1000) > 990){
+        //色
+        ofSetColor(186, 85, 211);
+        ofFill();
+        //円
+        
+        ofDrawEllipse(ofRandom(ofGetWindowWidth()), ofRandom(ofGetWindowHeight()), 100, 100);
+    }
     
     
     if(mode>1){
@@ -186,6 +198,7 @@ void ofApp::draw(){
         cam.getTexture().bind();
         camMesh.draw();
         cam.getTexture().unbind();
+        
         ofPopMatrix();
         
         
@@ -204,12 +217,14 @@ void ofApp::draw(){
         }
     }
     
+    //表情のログ
      ofstream ofs("/Users/yonedaryou/Downloads/OF_ROOT/apps/myApps/Expression_Change-myBeat/bin/data/face_Log.csv", std::ios::app);
     for( int i = 0 ; i < 66 ; i++ ){
         ofs << tracker.getObjectPoint(i).x << ",";
         ofs << tracker.getObjectPoint(i).y << ",";
         ofs << tracker.getObjectPoint(i).z << ",";
     }
+     
 }
 
 //--------------------------------------------------------------
@@ -275,6 +290,7 @@ float ofApp::changeEmo1(float z_score){
 
 
 void ofApp::baseline(int i){
+    //RRIのログ
     ofstream ofs("/Users/yonedaryou/Downloads/OF_ROOT/apps/myApps/Expression_Change-myBeat/bin/data/rri_Log.csv", std::ios::app);
     
     char sql_str[255];
@@ -325,7 +341,7 @@ void ofApp::baseline(int i){
 }
 
 void ofApp::sql(int i){
-    
+    //RRIのログ
     ofstream ofs("/Users/yonedaryou/Downloads/OF_ROOT/apps/myApps/Expression_Change-myBeat/bin/data/rri_Log.csv", std::ios::app);
 
     
@@ -419,15 +435,15 @@ void ofApp::joy(){                                     // joy - add - disgust
     
     //右目:36-41
     addx[36] = -changeEmo025(z_score); addy[36] = -changeEmo0125(z_score); addz[36] = 0.0000; // -0.25 ~ addx ~ -0.25, -0.125 ~ addy ~ 0.125
-    addx[37] = 0.0000; addy[37] = -changeEmo045(z_score); addz[37] = 0.0000; //-0.450 ~ addy ~ 0.250
-    addx[38] = 0.0000; addy[38] = -changeEmo045(z_score); addz[38] = 0.0000; //-0.450 ~ addy ~ 0.250
+    addx[37] = 0.0000; addy[37] = -changeEmo025(z_score); addz[37] = 0.0000; //-0.450 ~ addy ~ 0.250
+    addx[38] = 0.0000; addy[38] = -changeEmo025(z_score); addz[38] = 0.0000; //-0.450 ~ addy ~ 0.250
     addx[39] = changeEmo025(z_score); addy[39] = -changeEmo0125(z_score); addz[39] = 0.0000; //0.25 ~ addx ~ 0.25, -0.1250 ~ addy ~ 0.1250
     addx[40] = 0.0000; addy[40] = 0.0000; addz[40] = 0.0000;
     addx[41] = 0.0000; addy[41] = 0.0000; addz[41] = 0.0000;
     //左目:42-47
     addx[42] = -changeEmo025(z_score); addy[42] = -changeEmo0125(z_score); addz[42] = 0.0000; // -0.25 ~ addx ~ -0.25, -0.125 ~ addy ~ 0.125
-    addx[43] = 0.0000; addy[43] = -changeEmo045(z_score); addz[43] = 0.0000; //-0.450 ~ addy ~ 0.250
-    addx[44] = 0.0000; addy[44] = -changeEmo045(z_score); addz[44] = 0.0000; //-0.450 ~ addy ~ 0.250
+    addx[43] = 0.0000; addy[43] = 0.0000; addz[43] = 0.0000; //-0.450 ~ addy ~ 0.250
+    addx[44] = 0.0000; addy[44] = 0.0000; addz[44] = 0.0000; //-0.450 ~ addy ~ 0.250
     addx[45] = changeEmo025(z_score); addy[45] = -changeEmo0125(z_score); addz[45] = 0.0000; //0.25 ~ addx ~ 0.25, -0.1250 ~ addy ~ 0.1250
     addx[46] = 0.0000; addy[46] = 0.0000; addz[46] = 0.0000;
     addx[47] = 0.0000; addy[47] = 0.0000; addz[47] = 0.0000;
@@ -493,15 +509,15 @@ void ofApp::disgust(){                                     // joy - add - disgus
     
     //右目:36-41
     addx[36] = -changeEmo025(z_score); addy[36] = -changeEmo0125(z_score); addz[36] = 0.0000; // -0.25 ~ addx ~ -0.25, -0.125 ~ addy ~ 0.125
-    addx[37] = 0.0000; addy[37] = -changeEmo025(z_score); addz[37] = 0.0000; //-0.450 ~ addy ~ 0.250
-    addx[38] = 0.0000; addy[38] = -changeEmo025(z_score); addz[38] = 0.0000; //-0.450 ~ addy ~ 0.250
+    addx[37] = 0.0000; addy[37] = 0.0000; addz[37] = 0.0000; //-0.450 ~ addy ~ 0.250
+    addx[38] = 0.0000; addy[38] = 0.0000; addz[38] = 0.0000; //-0.450 ~ addy ~ 0.250
     addx[39] = changeEmo025(z_score); addy[39] = changeEmo0125(z_score); addz[39] = 0.0000; //0.25 ~ addx ~ 0.25, -0.1250 ~ addy ~ 0.1250
     addx[40] = 0.0000; addy[40] = 0.0000; addz[40] = 0.0000;
     addx[41] = 0.0000; addy[41] = 0.0000; addz[41] = 0.0000;
     //左目:42-47
     addx[42] = -changeEmo025(z_score); addy[42] = changeEmo0125(z_score); addz[42] = 0.0000; // -0.25 ~ addx ~ -0.25, -0.125 ~ addy ~ 0.125
-    addx[43] = 0.0000; addy[43] = -changeEmo045(z_score); addz[43] = 0.0000; //-0.450 ~ addy ~ 0.250
-    addx[44] = 0.0000; addy[44] = -changeEmo045(z_score); addz[44] = 0.0000; //-0.450 ~ addy ~ 0.250
+    addx[43] = 0.0000; addy[43] =0.0000; addz[43] = 0.0000; //-0.450 ~ addy ~ 0.250
+    addx[44] = 0.0000; addy[44] = 0.0000; addz[44] = 0.0000; //-0.450 ~ addy ~ 0.250
     addx[45] = changeEmo025(z_score); addy[45] = changeEmo0125(z_score); addz[45] = 0.0000; //0.25 ~ addx ~ 0.25, -0.1250 ~ addy ~ 0.1250
     addx[46] = 0.0000; addy[46] = 0.0000; addz[46] = 0.0000;
     addx[47] = 0.0000; addy[47] = 0.0000; addz[47] = 0.0000;
