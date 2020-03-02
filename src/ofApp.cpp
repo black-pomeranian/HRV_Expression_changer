@@ -104,14 +104,32 @@ void ofApp::draw(){
     
     //円のランダム生成
     //if(ofGetFrameNum() % 100==0){
-    if(ofRandom(0, 1000) > 990){
-        //色
+    if(ofRandom(0, 1000) > 990 && ellipse_count == 0){
+
+        //円の位置
+        location_x = ofRandom(ofGetWindowWidth());
+        location_y = ofRandom(ofGetWindowHeight());
+        
         ofSetColor(186, 85, 211);
         ofFill();
-        //円
-        
-        ofDrawEllipse(ofRandom(ofGetWindowWidth()), ofRandom(ofGetWindowHeight()), 100, 100);
+        ofDrawEllipse(location_x, location_y, 100, 100);
+
+        ellipse_count += 1;
     }
+    else if (ellipse_count > 0){
+        
+        //円の描写
+        ofSetColor(186, 85, 211);
+        ofFill();
+        ofDrawEllipse(location_x, location_y, 100, 100);
+
+        location_x = 0;
+        location_y = 0;
+        ellipse_count = 0;
+        
+    }
+    
+    
     
     
     if(mode>1){
@@ -266,6 +284,8 @@ float ofApp::changeEmo05(float z_score){
 
 float ofApp::changeEmo075(float z_score){
     return z_score * 0.75/(Max - sd);
+    std::printf("change");
+
 }
 
 float ofApp::changeEmo0125(float z_score){

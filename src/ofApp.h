@@ -97,4 +97,8 @@ class ofApp : public ofBaseApp{
     
         bool flag;
         double hrv;
+    
+        int ellipse_count = 0;
+        float location_x;
+        float location_y;
 };
