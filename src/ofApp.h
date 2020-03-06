@@ -104,5 +104,5 @@ class ofApp : public ofBaseApp{
         int ellipse_count = 0;
         float location_x;
         float location_y;
-        boolean ellipse = false;
+        bool ellipse = false;
 };
