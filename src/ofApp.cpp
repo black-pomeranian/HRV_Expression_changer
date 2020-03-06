@@ -104,31 +104,33 @@ void ofApp::draw(){
     
     //円のランダム生成
     //if(ofGetFrameNum() % 100==0){
-    if(ofRandom(0, 1000) > 990 && ellipse_count == 0){
+    if (ellipse) {
+            if(ofRandom(0, 1000) > 990 && ellipse_count == 0){
 
-        //円の位置
-        location_x = ofRandom(ofGetWindowWidth());
-        location_y = ofRandom(ofGetWindowHeight());
-        
-        ofSetColor(186, 85, 211);
-        ofFill();
-        ofDrawEllipse(location_x, location_y, 100, 100);
+            //円の位置
+            location_x = ofRandom(ofGetWindowWidth());
+            location_y = ofRandom(ofGetWindowHeight());
+            
+            ofSetColor(186, 85, 211);
+            ofFill();
+            ofDrawEllipse(location_x, location_y, 100, 100);
 
-        ellipse_count += 1;
+            ellipse_count += 1;
+        }
+        else if (ellipse_count > 0){
+            
+            //円の描写
+            ofSetColor(186, 85, 211);
+            ofFill();
+            ofDrawEllipse(location_x, location_y, 100, 100);
+
+            location_x = 0;
+            location_y = 0;
+            ellipse_count = 0;
+            
+        }
     }
-    else if (ellipse_count > 0){
-        
-        //円の描写
-        ofSetColor(186, 85, 211);
-        ofFill();
-        ofDrawEllipse(location_x, location_y, 100, 100);
 
-        location_x = 0;
-        location_y = 0;
-        ellipse_count = 0;
-        
-    }
-    
     
     
     
@@ -255,6 +257,9 @@ void ofApp::keyPressed(int key){
     if(key == 'r') {
         tracker.reset();
     }
+    if (key == 'e') {
+        ellipse = true;
+    }
 }
 
 
@@ -266,7 +271,7 @@ void ofApp::transform(){
     for( int i = 0 ; i < 66 ; i++ ){
         camMesh.setVertex(i, ofPoint(fpx[i]+addx[i],fpy[i]+addy[i],fpz[i]+addz[i]));
     }
-    
+
     ofEndShape();
 }
 
@@ -284,8 +289,6 @@ float ofApp::changeEmo05(float z_score){
 
 float ofApp::changeEmo075(float z_score){
     return z_score * 0.75/(Max - sd);
-    std::printf("change");
-
 }
 
 float ofApp::changeEmo0125(float z_score){
@@ -294,6 +297,8 @@ float ofApp::changeEmo0125(float z_score){
 
 float ofApp::changeEmo025(float z_score){
     return z_score * 0.25/(Max - sd);
+    std::printf("change");
+
 }
 
 float ofApp::changeEmo045(float z_score){
@@ -322,7 +327,7 @@ void ofApp::baseline(int i){
     
     //ry = (int)i + '0';
     ry = std::to_string(i);
-    std::string query_str = que + ry;
+    std::string query_str = que_base + ry;
     query = query_str.c_str();
     
     std::snprintf( &sql_str[0] , sizeof(sql_str)-1 , query );
@@ -497,6 +502,9 @@ void ofApp::joy(){                                     // joy - add - disgust
     addx[58] = 0.0000; addy[58] = 0; addz[58] = 0.0000;
     addx[59] = 0.0000; addy[59] = 0; addz[59] = 0.0000;
     
+    std::printf("change");
+
+    
     
 }
 
@@ -571,5 +579,7 @@ void ofApp::disgust(){                                     // joy - add - disgus
     addx[58] = 0.0000; addy[58] = 0; addz[58] = 0.0000;
     addx[59] = 0.0000; addy[59] = 0; addz[59] = 0.0000;
     
+    std::printf("change");
+
     
 }

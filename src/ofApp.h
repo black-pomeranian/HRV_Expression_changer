@@ -83,6 +83,9 @@ class ofApp : public ofBaseApp{
         const char *query;
         std::string que = "SELECT rri1, rri2, rri3 FROM yoneda6 WHERE count = ";
         std::string ry;
+        std::string que_base = "SELECT rri1, rri2, rri3 FROM yoneda_base WHERE count = ";
+
+    
         int r;
         int i = 0;
         int sum = 0;
@@ -101,4 +104,5 @@ class ofApp : public ofBaseApp{
         int ellipse_count = 0;
         float location_x;
         float location_y;
+        boolean ellipse = false;
 };
